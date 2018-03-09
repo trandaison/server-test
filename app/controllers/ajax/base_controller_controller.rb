@@ -1,23 +1,37 @@
 require 'rest-client'
+require 'parallel'
+require 'net/http'
+require 'json'
+
 class Ajax::BaseControllerController < ApplicationController
   include Ajax::BaseControllerHelper
+
   def elevation
-    result = []
-    segments.each_with_index do |segment, i|
-      k = samples segment[:latlngA], segment[:latlngB]
-      response = RestClient.get("http://cm-stg.mapion.co.jp/geoapi/elev/json?path=#{segment[:param]}&sample=#{k}&dtm=tky&island=0")
-      body = JSON.parse response.body, symbolize_names: true
-      data = body[:result].map do |point|
-        {
-          y: point[:elevation].to_f,
-          lat: point[:location][:lat].to_f,
-          lng: point[:location][:lng].to_f
+    end_point = "http://cm-stg.mapion.co.jp/geoapi/elev/json"
+    ret = Parallel.map(segments, in_process: 2) do |segment|
+      begin
+        uri = URI.parse "#{end_point}?path=#{segment[:param]}&sample=#{segment[:samples]}&dtm=wgs"
+        response = Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == "https") {|http|
+          http.open_timeout = 10
+          http.read_timeout = 10
+          http.get(uri.request_uri)
         }
+        if response.code == "200"
+          result = JSON.parse(response.body, symbolize_names: true)[:result].map do |res|
+            {
+              y: res[:elevation].to_f == -9999 ? 0 : res[:elevation].to_f,
+              lat: res[:location][:lat].to_f,
+              lng: res[:location][:lng].to_f
+            }
+          end
+          result
+        end
+      rescue => e
+        p e
       end
-      data.pop unless i == (segments.size - 1)
-      result.concat data
     end
-    render json: {data: result}, status: 200
+    ret.flatten!
+    render json: {data: ret}, status: 200
   end
 
   private
@@ -29,8 +43,7 @@ class Ajax::BaseControllerController < ApplicationController
         latlngB = data[index + 1]
         result << {
           param: "#{latlngA[:lng]},#{latlngA[:lat]}|#{latlngB[:lng]},#{latlngB[:lat]}",
-          latlngA: latlngA,
-          latlngB: latlngB,
+          samples: samples(latlngA, latlngB)
         }
       end
     end

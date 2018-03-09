@@ -27,6 +27,7 @@ gem 'jbuilder', '~> 2.5'
 # Use Capistrano for deployment
 # gem 'capistrano-rails', group: :development
 gem 'rest-client', '~> 2.0', '>= 2.0.2'
+gem 'parallel'
 
 group :development, :test do
   gem "pry-rails"
