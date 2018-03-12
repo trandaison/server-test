@@ -85,6 +85,7 @@ GEM
       pry (>= 0.10.4)
     puma (3.11.3)
     rack (2.0.4)
+    rack-cors (1.0.2)
     rack-test (0.8.3)
       rack (>= 1.0, < 3)
     rails (5.1.5)
@@ -171,6 +172,7 @@ DEPENDENCIES
   parallel
   pry-rails
   puma (~> 3.7)
+  rack-cors
   rails (~> 5.1.4)
   rest-client (~> 2.0, >= 2.0.2)
   sass-rails (~> 5.0)

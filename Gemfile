@@ -28,6 +28,7 @@ gem 'jbuilder', '~> 2.5'
 # gem 'capistrano-rails', group: :development
 gem 'rest-client', '~> 2.0', '>= 2.0.2'
 gem 'parallel'
+gem 'rack-cors', :require => 'rack/cors'
 
 group :development, :test do
   gem "pry-rails"
