@@ -12,4 +12,5 @@
 //
 //= require rails-ujs
 //= require vue
+//= require leaflet
 //= require home.js
